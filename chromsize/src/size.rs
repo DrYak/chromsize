@@ -9,48 +9,52 @@ use std::{
     path::Path,
 };
 
-pub fn get_sizes<T: AsRef<Path> + Debug>(fasta: T) -> Result<Vec<(String, u64)>, Box<dyn Error>> {
+pub fn get_sizes<T: AsRef<Path> + Debug>(fasta: T, accession_only: bool) -> Result<Vec<(String, u64)>, Box<dyn Error>> {
     let path = fasta.as_ref();
     let ext = path.extension().unwrap();
     let file = File::open(path)?;
 
     let lines = match ext.to_str().unwrap() {
-        "gz" => with_gz(&file)?,
-        "fa" | "fasta" | "fna" => raw(&file)?,
+        "gz" => with_gz(&file, accession_only)?,
+        "fa" | "fasta" | "fna" => raw(&file, accession_only)?,
         _ => panic!("ERROR: Not a fasta. Wrong file format!"),
     };
 
     Ok(lines)
 }
 
-pub fn raw(file: &File) -> Result<Vec<(String, u64)>, Box<dyn Error>> {
+pub fn raw(file: &File, accession_only: bool) -> Result<Vec<(String, u64)>, Box<dyn Error>> {
     let mmap = unsafe { Mmap::map(file)? };
-    let lines = chromsize(&mmap)?;
+    let lines = chromsize(&mmap, accession_only)?;
 
     Ok(lines)
 }
 
-fn with_gz(file: &File) -> Result<Vec<(String, u64)>, Box<dyn Error>> {
+fn with_gz(file: &File, accession_only: bool) -> Result<Vec<(String, u64)>, Box<dyn Error>> {
     let mmap = unsafe { Mmap::map(file)? };
     let mut decoder = MultiGzDecoder::new(&mmap[..]);
 
     let mut buffer = Vec::with_capacity(100 * 1024 * 1024); // 100MB buffer
     decoder.read_to_end(&mut buffer)?;
 
-    let lines = chromsize(&buffer)?;
+    let lines = chromsize(&buffer, accession_only)?;
 
     Ok(lines)
 }
 
-fn chromsize(data: &[u8]) -> Result<Vec<(String, u64)>, Box<dyn Error>> {
+fn chromsize(data: &[u8], accession_only: bool) -> Result<Vec<(String, u64)>, Box<dyn Error>> {
     let lines = data
         .par_split(|&c| c == b'>')
         .filter(|chunk| !chunk.is_empty())
         .map(|chunk| {
             let mut totals = 0u64;
             let stop = memchr::memchr(b'\n', chunk).unwrap_or(0);
+            let name_stop = match accession_only {
+                true => memchr::memchr(b' ', &chunk[..stop]).unwrap_or(stop),
+                false => stop,
+            };
             let chr = unsafe {
-                std::str::from_utf8_unchecked(&chunk[..stop])
+                std::str::from_utf8_unchecked(&chunk[..name_stop])
                     .trim()
                     .to_string()
             };
