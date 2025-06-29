@@ -3,19 +3,30 @@ use pyo3::prelude::*;
 use std::path::PathBuf;
 
 #[pyfunction]
-fn get_chromsizes(py: Python, fasta: PyObject) -> PyResult<Vec<(String, u64)>> {
+#[pyo3(signature = (fasta, accession_only=false))]
+fn get_chromsizes(
+    py: Python,
+    fasta: PyObject,
+    accession_only: bool,
+) -> PyResult<Vec<(String, u64)>> {
     let fasta = PathBuf::from(fasta.extract::<String>(py)?);
 
-    let sizes = chromsize::get_sizes(&fasta);
+    let sizes = chromsize::get_sizes(&fasta, accession_only);
     sizes.map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("{}", e)))
 }
 
 #[pyfunction]
-fn write_chromsizes(py: Python, fasta: PyObject, output: PyObject) -> PyResult<String> {
+#[pyo3(signature = (fasta, output, accession_only=false))]
+fn write_chromsizes(
+    py: Python,
+    fasta: PyObject,
+    output: PyObject,
+    accession_only: bool,
+) -> PyResult<String> {
     let fasta = PathBuf::from(fasta.extract::<String>(py)?);
     let output = PathBuf::from(output.extract::<String>(py)?);
 
-    let sizes = chromsize::get_sizes(&fasta);
+    let sizes = chromsize::get_sizes(&fasta, accession_only);
     if let Ok(sizes) = sizes {
         chromsize::writer(sizes, &output);
         Ok(format!("Chromosome sizes written to {}", output.display()))
