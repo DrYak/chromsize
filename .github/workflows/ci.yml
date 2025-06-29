@@ -83,5 +83,5 @@ jobs:
         run: |
           cd py-chromsize
           source $(hatch env find)/bin/activate
-          maturin develop --release --manifest-path Cargo.toml --features test
+          maturin develop --release --manifest-path Cargo.toml
           hatch run test --verbose
