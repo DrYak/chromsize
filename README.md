@@ -7,13 +7,13 @@
     <a href="https://img.shields.io/badge/version-0.1.0dev-green" target="_blank">
       <img alt="Version Badge" src="https://img.shields.io/badge/version-0.0.1-green">
     </a>
-    <a href="https://crates.io/crates/chaintools" target="_blank">
+    <a href="https://crates.io/crates/chromsize" target="_blank">
       <img alt="Crates.io Version" src="https://img.shields.io/crates/v/chromsize">
     </a>
-    <a href="https://github.com/alejandrogzi/chaintools" target="_blank">
+    <a href="https://github.com/alejandrogzi/chromsize" target="_blank">
       <img alt="GitHub License" src="https://img.shields.io/github/license/alejandrogzi/chromsize?color=blue">
     </a>
-    <a href="https://crates.io/crates/chaintools" target="_blank">
+    <a href="https://crates.io/crates/chromsize" target="_blank">
       <img alt="Crates.io Total Downloads" src="https://img.shields.io/crates/d/chromsize">
     </a>
   </p>
@@ -37,9 +37,9 @@ but first, how is this better than any other option? yeah, just check the image 
 
 googled 'get chromosome sizes from fasta', grab every command/tool I found and benchmarked it. surprisingly, you can lose 14 seconds of your life just waiting for those chrom sizes to be calculated. crazy.
 
-> What's new on v.0.0.2?
-> - now reads .gz!
-> - CI implementation
+> What's new on v.0.0.3?
+> - now adds --accession-only flag to cut fasta headers
+> - fix CI implementation
 
 ## Usage
 ### Binary
@@ -52,6 +52,7 @@ Arguments:
 
 Options:
     -t, --threads <THREADS>: number of threads [default: your max ncpus]
+    -a, --accession-only     only keep the accession id part of the header (stop after blank)
     --help: print help
     --version: print version
 ```
@@ -190,4 +191,3 @@ here is all the info and metadata from my experiment:
 | chromsize | 4                          | 8.035 s ± 0.077 s      |
 | seqkit    | 2                          | 18.535 s ± 0.376 s     |
 | chromsize | 2                          | 8.284 s ± 0.030 s      |
-
