@@ -36,4 +36,12 @@ pub struct Args {
         default_value_t = num_cpus::get()
     )]
     pub threads: usize,
+
+    #[clap(
+        short = 'a',
+        long = "accession-only",
+        help = "only keep the accession id part of the header (stop after blank)",
+        default_value_t = false
+    )]
+    pub accession_only: bool,
 }
