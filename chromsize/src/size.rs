@@ -45,6 +45,7 @@ fn with_gz(file: &File, accession_only: bool) -> Result<Vec<(String, u64)>, Box<
 fn chromsize(data: &[u8], accession_only: bool) -> Result<Vec<(String, u64)>, Box<dyn Error>> {
     let lines = data
         .par_split(|&c| c == b'>')
+        // NOTE this filter will only work when '>' is litterally the first byte of the string. It will not pick up the corner case where there are multiple empty lines before the the first sequence header
         .filter(|chunk| !chunk.is_empty())
         .map(|chunk| {
             let mut totals = 0u64;
@@ -66,7 +67,11 @@ fn chromsize(data: &[u8], accession_only: bool) -> Result<Vec<(String, u64)>, Bo
         })
         .collect::<Vec<(String, u64)>>();
 
-    Ok(lines)
+    // skip the first result if it empty. Happens when there are multiple empty lines before the first sequence header
+    Ok(match (lines[0].1, lines[0].0.len()) {
+        (0, 0) => lines[1..].to_vec(),
+        _ => lines,
+    })
 }
 
 pub fn writer<T>(sizes: Vec<(String, u64)>, out: T)
